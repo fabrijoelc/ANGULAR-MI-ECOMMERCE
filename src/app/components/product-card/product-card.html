@@ -1,0 +1,66 @@
+<article
+  class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col overflow-hidden"
+>
+  <div class="relative bg-slate-50 p-4">
+    <span class="absolute top-3 left-3 bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded-md">
+      {{ abrev() }}
+    </span>
+
+    <img [src]="imagen()" [alt]="nombre()" class="w-full h-44 object-contain" />
+  </div>
+
+  <div class="p-5 flex flex-col flex-1">
+    <p class="text-xs text-slate-500 uppercase">{{ equipo() }}</p>
+    <h3 class="text-base font-semibold text-slate-800 mt-1">{{ nombre() }}</h3>
+
+    <div class="flex items-center justify-between gap-2 mt-3 mb-4">
+      <p class="text-emerald-600 font-bold text-xl">S/ {{ precio() }}.00</p>
+
+      <p
+        class="text-xs font-medium rounded-full px-3 py-1"
+        [class.bg-green-100]="stock() > 10"
+        [class.text-green-700]="stock() > 10"
+        [class.bg-amber-100]="stock() <= 10 && stock() > 0"
+        [class.text-amber-700]="stock() <= 10 && stock() > 0"
+        [class.bg-red-100]="stock() === 0"
+        [class.text-red-700]="stock() === 0"
+      >
+        {{ stock() | stockAString }}
+      </p>
+    </div>
+
+    <div class="flex items-center justify-center gap-4 mb-4 mt-auto">
+      <button
+        type="button"
+        class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 font-bold text-lg hover:bg-slate-200 transition-colors"
+        (click)="reducir()"
+      >
+        −
+      </button>
+
+      <span class="w-8 text-center font-semibold text-slate-800">{{ cantidad() }}</span>
+
+      <button
+        type="button"
+        class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 font-bold text-lg hover:bg-slate-200 transition-colors"
+        (click)="incrementar()"
+      >
+        +
+      </button>
+    </div>
+
+    @if (stock() === 0) {
+      <button type="button" class="w-full py-2.5 rounded-xl bg-slate-200 text-slate-500 font-medium" disabled>
+        Sin stock
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="w-full py-2.5 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-700 active:scale-95 transition-all duration-150"
+        (click)="agregarAlCarrito()"
+      >
+        Agregar al carrito
+      </button>
+    }
+  </div>
+</article>

@@ -1,0 +1,110 @@
+<app-header (buscar)="alBuscar($event)" />
+
+<div class="min-h-screen bg-slate-100 flex flex-col lg:flex-row">
+  <main class="flex-1 p-6 lg:p-10">
+    <div class="flex items-baseline justify-between gap-3 mb-6">
+      <h2 class="text-2xl font-bold text-slate-800">Nuestros jerseys</h2>
+      <p class="text-sm text-slate-500">
+        {{ productosFiltrados().length }} de {{ productos().length }} productos
+      </p>
+    </div>
+
+    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      @for (producto of productosFiltrados(); track producto.id) {
+        <app-product-card
+          [id]="producto.id"
+          [nombre]="producto.nombre"
+          [equipo]="producto.equipo"
+          [abrev]="producto.abrev"
+          [precio]="producto.precio"
+          [imagen]="producto.imagen"
+          [stock]="producto.stock"
+          (addToCart)="manejarAgregarAlCarrito($event)"
+        />
+      } @empty {
+        <p class="col-span-full bg-white rounded-2xl py-12 px-6 text-center text-slate-500">
+          Ningún jersey coincide con «{{ textoBuscado() }}». Prueba con otro equipo o modelo.
+        </p>
+      }
+    </section>
+  </main>
+
+  <aside class="w-full lg:w-80 bg-white border-l border-slate-200 p-6">
+    <div class="sticky top-6">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="text-2xl">🛒</span>
+        <h2 class="text-xl font-semibold text-slate-800">Tu Carrito</h2>
+
+        <span
+          class="ml-auto inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full bg-emerald-500 text-white font-bold text-sm"
+        >
+          {{ cantidadDeItems() }}
+        </span>
+      </div>
+
+      @if (elementosCarrito().length > 0) {
+        <div class="space-y-3 mb-6 max-h-96 overflow-y-auto">
+          @for (item of elementosCarrito(); track item.id) {
+            <div class="flex items-center gap-3 bg-slate-50 rounded-xl p-3">
+              <img
+                [src]="item.imagen"
+                [alt]="item.nombre"
+                class="w-12 h-12 object-contain rounded-lg bg-white"
+              />
+
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-800 truncate">{{ item.nombre }}</p>
+                <p class="text-xs text-slate-500">S/ {{ item.precio }} x {{ item.cantidad }}</p>
+              </div>
+
+              <div class="text-right">
+                <p class="text-sm font-semibold text-slate-800">
+                  S/ {{ item.precio * item.cantidad }}
+                </p>
+                <button
+                  type="button"
+                  class="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                 
+                  (click)="quitarDelCarrito(item.id)"
+                >
+                  Quitar
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="text-slate-500 text-sm mb-6">Tu carrito está vacío</p>
+      }
+
+      <div class="space-y-2 border-t border-slate-200 pt-4">
+        <div class="flex justify-between text-sm text-slate-600">
+          <span>Total de items</span>
+          <span class="font-medium text-slate-800">{{ cantidadDeItems() }}</span>
+        </div>
+
+        <div class="flex justify-between text-base">
+          <span class="text-slate-600">Total a pagar</span>
+          <span class="font-bold text-emerald-600">S/ {{ precioTotal() }}.00</span>
+        </div>
+      </div>
+
+      @if (elementosCarrito().length > 0) {
+        <button
+          type="button"
+          class="w-full mt-4 py-2.5 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-700 transition-colors"
+        >
+          Finalizar compra
+        </button>
+
+        <button
+          type="button"
+          class="w-full mt-2 py-2 text-sm text-slate-500 hover:text-red-500 transition-colors"
+          (click)="vaciarCarrito()"
+        >
+          Vaciar carrito
+        </button>
+      }
+    </div>
+  </aside>
+</div>

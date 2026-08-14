@@ -1,0 +1,37 @@
+<header class="relative bg-slate-900 text-white overflow-hidden">
+  <img
+    src="images/hero-cancha.jpg"
+    alt="Cancha de basquet"
+    class="absolute inset-0 w-full h-full object-cover opacity-20"
+  />
+
+  <div class="relative max-w-7xl mx-auto px-6 py-6 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <span class="text-3xl">🏀</span>
+      <div>
+        <h1 class="text-2xl font-bold">Tienda de Jerseys NBA</h1>
+        <p class="text-sm text-slate-400">Camisetas oficiales · Lima, Perú</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      <input
+        type="search"
+        [value]="termino()"
+        (input)="alEscribir($event)"
+        placeholder="Buscar por equipo o modelo"
+        class="flex-1 sm:w-72 px-4 py-2 rounded-lg text-slate-800 bg-white outline-none focus:ring-2 focus:ring-emerald-500"
+      />
+
+      @if (termino()) {
+        <button
+          type="button"
+          class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors text-sm"
+          (click)="limpiar()"
+        >
+          Limpiar
+        </button>
+      }
+    </div>
+  </div>
+</header>
