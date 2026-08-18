@@ -1,0 +1,93 @@
+<section class="min-h-[70vh] bg-slate-100 flex items-start justify-center px-6 py-12">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
+    @if (sesionIniciada()) {
+      <div class="text-center">
+        <p class="text-4xl mb-3">✅</p>
+        <h2 class="text-2xl font-bold text-slate-800">Sesión iniciada</h2>
+        <p class="text-slate-500 mt-2">Estás conectado como {{ correo() }}.</p>
+
+        <a
+          routerLink="/catalogo"
+          class="block w-full mt-6 py-2.5 rounded-xl bg-slate-900 text-white font-medium text-center hover:bg-slate-700 transition-colors"
+        >
+          Ir al catálogo
+        </a>
+
+        <button
+          type="button"
+          class="w-full mt-2 py-2 text-sm text-slate-500 hover:text-red-500 transition-colors"
+          (click)="cerrarSesion()"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    } @else {
+      <h2 class="text-2xl font-bold text-slate-800">Inicia sesión</h2>
+      <p class="text-sm text-slate-500 mt-1 mb-6">Entra para seguir armando tu pedido.</p>
+
+      <form class="space-y-4" (submit)="$event.preventDefault(); iniciarSesion()">
+        <div>
+          <label for="correo-login" class="block text-sm font-medium text-slate-700 mb-1">
+            Correo
+          </label>
+          <input
+            id="correo-login"
+            type="email"
+            placeholder="fabrizio@correo.com"
+            class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500"
+            [value]="correo()"
+            (input)="escribir(correo, $event)"
+          />
+          @if (intentoEnviar() && errores().correo) {
+            <p class="text-xs text-red-600 mt-1">{{ errores().correo }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="clave-login" class="block text-sm font-medium text-slate-700 mb-1">
+            Contraseña
+          </label>
+
+          <div class="flex gap-2">
+            <input
+              id="clave-login"
+              [type]="verClave() ? 'text' : 'password'"
+              placeholder="Tu contraseña"
+              class="flex-1 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500"
+              [value]="clave()"
+              (input)="escribir(clave, $event)"
+            />
+
+            <button
+              type="button"
+              class="px-3 rounded-xl bg-slate-100 text-slate-600 text-sm hover:bg-slate-200 transition-colors"
+              (click)="cambiarVisibilidadClave()"
+            >
+              @if (verClave()) {
+                Ocultar
+              } @else {
+                Ver
+              }
+            </button>
+          </div>
+
+          @if (intentoEnviar() && errores().clave) {
+            <p class="text-xs text-red-600 mt-1">{{ errores().clave }}</p>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-2.5 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-700 active:scale-95 transition-all duration-150"
+        >
+          Entrar
+        </button>
+      </form>
+
+      <p class="text-sm text-slate-500 text-center mt-6">
+        ¿Todavía no tienes cuenta?
+        <a routerLink="/registro" class="text-emerald-600 font-medium hover:underline">Regístrate</a>
+      </p>
+    }
+  </div>
+</section>
