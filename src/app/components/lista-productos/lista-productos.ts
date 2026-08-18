@@ -1,11 +1,10 @@
 import { Component, computed, effect, signal } from '@angular/core';
 import { ProductCard } from '../product-card/product-card';
-import { Header } from '../header/header';
 import { IProductoCarrito, IProductoTienda } from '../../product.interface';
 
 @Component({
   selector: 'app-lista-productos',
-  imports: [ProductCard, Header],
+  imports: [ProductCard],
   templateUrl: './lista-productos.html',
 })
 export class ListaProductos {
@@ -95,8 +94,13 @@ export class ListaProductos {
     });
   }
 
-  alBuscar(texto: string) {
-    this.textoBuscado.set(texto);
+  alBuscar(evento: Event) {
+    const input = evento.target as HTMLInputElement;
+    this.textoBuscado.set(input.value);
+  }
+
+  limpiarBusqueda() {
+    this.textoBuscado.set('');
   }
 
   esFavorito(id: number) {

@@ -6,32 +6,38 @@
   />
 
   <div class="relative max-w-7xl mx-auto px-6 py-6 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
+    <a routerLink="/catalogo" class="flex items-center gap-3">
       <span class="text-3xl">🏀</span>
       <div>
         <h1 class="text-2xl font-bold">Tienda de Jerseys NBA</h1>
         <p class="text-sm text-slate-400">Camisetas oficiales · Lima, Perú</p>
       </div>
-    </div>
+    </a>
 
-    <div class="flex items-center gap-2 w-full sm:w-auto">
-      <input
-        type="search"
-        [value]="termino()"
-        (input)="alEscribir($event)"
-        placeholder="Buscar por equipo o modelo"
-        class="flex-1 sm:w-72 px-4 py-2 rounded-lg text-slate-800 bg-white outline-none focus:ring-2 focus:ring-emerald-500"
-      />
+    <nav class="flex items-center gap-2">
+      <a
+        routerLink="/catalogo"
+        routerLinkActive="bg-white text-slate-900"
+        class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+      >
+        Catálogo
+      </a>
 
-      @if (termino()) {
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors text-sm"
-          (click)="limpiar()"
-        >
-          Limpiar
-        </button>
-      }
-    </div>
+      <a
+        routerLink="/login"
+        routerLinkActive="bg-white text-slate-900"
+        class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+      >
+        Iniciar sesión
+      </a>
+
+      <a
+        routerLink="/registro"
+        routerLinkActive="bg-white text-slate-900"
+        class="px-4 py-2 rounded-lg text-sm font-medium bg-emerald-500 hover:bg-emerald-400 transition-colors"
+      >
+        Crear cuenta
+      </a>
+    </nav>
   </div>
 </header>
