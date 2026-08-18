@@ -13,6 +13,11 @@ export class ListaProductos {
 
   elementosCarrito = signal<IProductoCarrito[]>([]);
 
+  // Guardo solo los ids de los favoritos, asi no duplico la informacion del producto.
+  idsFavoritos = signal<number[]>([]);
+
+  soloFavoritos = signal(false);
+
   productos = signal<IProductoTienda[]>([
     { id: 1, nombre: 'Camiseta Miami Heat', equipo: 'Miami Heat', abrev: 'MIA', precio: 249, stock: 7, imagen: 'images/productos/153393579.jpg' },
     { id: 2, nombre: 'Camiseta Lakers Negro', equipo: 'Los Angeles Lakers', abrev: 'LAL', precio: 269, stock: 12, imagen: 'images/productos/153393600.jpg' },
@@ -36,14 +41,25 @@ export class ListaProductos {
     { id: 20, nombre: 'Camiseta Miami Heat Butler', equipo: 'Miami Heat', abrev: 'MIA', precio: 269, stock: 10, imagen: 'images/productos/155804029.jpg' },
   ]);
 
+  productosFavoritos = computed(() => {
+    return this.productos().filter((producto) => {
+      return this.idsFavoritos().includes(producto.id);
+    });
+  });
+
+  cantidadDeFavoritos = computed(() => {
+    return this.idsFavoritos().length;
+  });
+
   productosFiltrados = computed(() => {
     const busqueda = this.textoBuscado().toLowerCase();
+    const base = this.soloFavoritos() ? this.productosFavoritos() : this.productos();
 
     if (busqueda === '') {
-      return this.productos();
+      return base;
     }
 
-    return this.productos().filter((producto) => {
+    return base.filter((producto) => {
       return (
         producto.nombre.toLowerCase().includes(busqueda) ||
         producto.equipo.toLowerCase().includes(busqueda)
@@ -81,6 +97,24 @@ export class ListaProductos {
 
   alBuscar(texto: string) {
     this.textoBuscado.set(texto);
+  }
+
+  esFavorito(id: number) {
+    return this.idsFavoritos().includes(id);
+  }
+
+  manejarToggleFavorito(id: number) {
+    this.idsFavoritos.update((listaActual) => {
+      if (listaActual.includes(id)) {
+        return listaActual.filter((idGuardado) => idGuardado !== id);
+      }
+
+      return [...listaActual, id];
+    });
+  }
+
+  cambiarSoloFavoritos() {
+    this.soloFavoritos.update((valorActual) => !valorActual);
   }
 
   manejarAgregarAlCarrito(data: IProductoCarrito) {

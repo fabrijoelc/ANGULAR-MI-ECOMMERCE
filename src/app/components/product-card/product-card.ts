@@ -15,10 +15,12 @@ export class ProductCard {
   precio = input.required<number>();
   imagen = input.required<string>();
   stock = input.required<number>();
+  esFavorito = input<boolean>(false);
 
   cantidad = model<number>(1);
 
   addToCart = output<IProductoCarrito>();
+  toggleFavorito = output<number>();
 
   incrementar() {
     this.cantidad.update((valorActual) => {
@@ -45,5 +47,9 @@ export class ProductCard {
       cantidad: this.cantidad(),
       imagen: this.imagen(),
     });
+  }
+
+  marcarFavorito() {
+    this.toggleFavorito.emit(this.id());
   }
 }

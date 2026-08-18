@@ -6,6 +6,21 @@
       {{ abrev() }}
     </span>
 
+    <button
+      type="button"
+      class="absolute top-3 right-3 w-9 h-9 rounded-full bg-white shadow-sm text-lg leading-none hover:scale-110 transition-transform"
+      [class.text-red-500]="esFavorito()"
+      [class.text-slate-300]="!esFavorito()"
+      [title]="esFavorito() ? 'Quitar de favoritos' : 'Guardar en favoritos'"
+      (click)="marcarFavorito()"
+    >
+      @if (esFavorito()) {
+        ★
+      } @else {
+        ☆
+      }
+    </button>
+
     <img [src]="imagen()" [alt]="nombre()" class="w-full h-44 object-contain" />
   </div>
 
