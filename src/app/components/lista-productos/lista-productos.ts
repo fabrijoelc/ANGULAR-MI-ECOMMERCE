@@ -83,6 +83,23 @@ export class ListaProductos {
   });
 
   constructor() {
+    // Al entrar recupero lo que el usuario dejo guardado la ultima vez.
+    const carritoGuardado = localStorage.getItem('nba-carrito');
+    if (carritoGuardado) {
+      this.elementosCarrito.set(JSON.parse(carritoGuardado));
+    }
+
+    const favoritosGuardados = localStorage.getItem('nba-favoritos');
+    if (favoritosGuardados) {
+      this.idsFavoritos.set(JSON.parse(favoritosGuardados));
+    }
+
+    // Cada vez que cambia el carrito o los favoritos vuelvo a guardarlos.
+    effect(() => {
+      localStorage.setItem('nba-carrito', JSON.stringify(this.elementosCarrito()));
+      localStorage.setItem('nba-favoritos', JSON.stringify(this.idsFavoritos()));
+    });
+
     effect(() => {
       const items = this.cantidadDeItems();
 
