@@ -1,5 +1,5 @@
 import { Component, input, model, output } from '@angular/core';
-import { IProductoCarrito } from '../../product.interface';
+import { IProductoCarrito } from '../../interfaces/producto.interface';
 import { EstadoStockPipe } from '../../pipes/estado-stock-pipe';
 
 @Component({
@@ -8,7 +8,7 @@ import { EstadoStockPipe } from '../../pipes/estado-stock-pipe';
   templateUrl: './product-card.html',
 })
 export class ProductCard {
-  id = input.required<number>();
+  id = input.required<string>();
   nombre = input.required<string>();
   equipo = input.required<string>();
   abrev = input.required<string>();
@@ -20,7 +20,7 @@ export class ProductCard {
   cantidad = model<number>(1);
 
   addToCart = output<IProductoCarrito>();
-  toggleFavorito = output<number>();
+  toggleFavorito = output<string>();
 
   incrementar() {
     this.cantidad.update((valorActual) => {

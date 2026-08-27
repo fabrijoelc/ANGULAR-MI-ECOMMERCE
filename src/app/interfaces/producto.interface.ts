@@ -1,15 +1,15 @@
 export interface IProductoTienda {
-  id: number;
+  id: string;
   nombre: string;
   equipo: string;
   abrev: string;
   precio: number;
-  imagen: string;
   stock: number;
+  imagen: string;
 }
 
 export interface IProductoCarrito {
-  id: number;
+  id: string;
   nombre: string;
   equipo: string;
   abrev: string;

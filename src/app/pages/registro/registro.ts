@@ -1,5 +1,7 @@
-import { Component, computed, signal, WritableSignal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, signal, WritableSignal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { UsuarioService } from '../../services/usuario-service';
+import { NotificacionService } from '../../services/notificacion-service';
 
 @Component({
   selector: 'app-registro',
@@ -7,6 +9,10 @@ import { RouterLink } from '@angular/router';
   templateUrl: './registro.html',
 })
 export class Registro {
+  private router = inject(Router);
+  usuarioService = inject(UsuarioService);
+  notificacionService = inject(NotificacionService);
+
   nombre = signal('');
   correo = signal('');
   clave = signal('');
@@ -15,6 +21,7 @@ export class Registro {
   // Recien muestro los errores cuando el usuario intenta enviar el formulario.
   intentoEnviar = signal(false);
   cuentaCreada = signal(false);
+  guardando = signal(false);
 
   errores = computed(() => {
     return {
@@ -40,14 +47,35 @@ export class Registro {
     campo.set(input.value);
   }
 
-  crearCuenta() {
+  async crearCuenta() {
     this.intentoEnviar.set(true);
 
     if (!this.formularioValido()) {
       return;
     }
 
-    this.cuentaCreada.set(true);
+    this.guardando.set(true);
+
+    try {
+      // El servicio cifra la contrasena antes de guardarla en Supabase.
+      const creada = await this.usuarioService.registrar(
+        this.nombre(),
+        this.correo(),
+        this.clave(),
+      );
+
+      if (creada) {
+        this.cuentaCreada.set(true);
+        this.notificacionService.show('Cuenta creada, ya puedes iniciar sesión', 'exito');
+        this.router.navigate(['/login']);
+      } else {
+        this.notificacionService.show('Ese correo ya está registrado', 'error');
+      }
+    } catch {
+      this.notificacionService.show('No se pudo conectar con el servidor', 'error');
+    }
+
+    this.guardando.set(false);
   }
 
   limpiarFormulario() {

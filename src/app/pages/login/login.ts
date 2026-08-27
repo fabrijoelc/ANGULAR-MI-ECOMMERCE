@@ -1,5 +1,7 @@
-import { Component, computed, signal, WritableSignal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, signal, WritableSignal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { UsuarioService } from '../../services/usuario-service';
+import { NotificacionService } from '../../services/notificacion-service';
 
 @Component({
   selector: 'app-login',
@@ -7,12 +9,17 @@ import { RouterLink } from '@angular/router';
   templateUrl: './login.html',
 })
 export class Login {
+  private router = inject(Router);
+  usuarioService = inject(UsuarioService);
+  notificacionService = inject(NotificacionService);
+
   correo = signal('');
   clave = signal('');
   verClave = signal(false);
 
   intentoEnviar = signal(false);
   sesionIniciada = signal(false);
+  verificando = signal(false);
 
   errores = computed(() => {
     return {
@@ -35,17 +42,35 @@ export class Login {
     this.verClave.update((valorActual) => !valorActual);
   }
 
-  iniciarSesion() {
+  async iniciarSesion() {
     this.intentoEnviar.set(true);
 
     if (!this.formularioValido()) {
       return;
     }
 
-    this.sesionIniciada.set(true);
+    this.verificando.set(true);
+
+    try {
+      // El servicio busca el correo en Supabase y compara la contrasena cifrada.
+      const correcto = await this.usuarioService.loguear(this.correo(), this.clave());
+
+      if (correcto) {
+        this.sesionIniciada.set(true);
+        this.notificacionService.show('Bienvenido de vuelta', 'exito');
+        this.router.navigate(['/catalogo']);
+      } else {
+        this.notificacionService.show('Correo o contraseña incorrectos', 'error');
+      }
+    } catch {
+      this.notificacionService.show('No se pudo conectar con el servidor', 'error');
+    }
+
+    this.verificando.set(false);
   }
 
   cerrarSesion() {
+    this.usuarioService.cerrarSesion();
     this.correo.set('');
     this.clave.set('');
     this.intentoEnviar.set(false);

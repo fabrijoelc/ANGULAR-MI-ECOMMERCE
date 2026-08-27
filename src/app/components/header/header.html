@@ -24,6 +24,26 @@
       </a>
 
       <a
+        routerLink="/catalogo"
+        class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+      >
+        Carrito ({{ carritoService.cantidadDeItems() }})
+      </a>
+
+      @if (usuarioService.usuarioActivo()) {
+        <span class="px-3 py-2 text-sm text-emerald-400">
+          Hola, {{ usuarioService.usuarioActivo()!.nombres }}
+        </span>
+
+        <button
+          type="button"
+          class="px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 transition-colors"
+          (click)="cerrarSesion()"
+        >
+          Cerrar sesion
+        </button>
+      } @else {
+      <a
         routerLink="/login"
         routerLinkActive="bg-white text-slate-900"
         class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
@@ -38,6 +58,7 @@
       >
         Crear cuenta
       </a>
+      }
     </nav>
   </div>
 </header>

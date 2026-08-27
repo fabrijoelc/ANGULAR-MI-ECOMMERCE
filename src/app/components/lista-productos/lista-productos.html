@@ -35,15 +35,24 @@
           [class.border-slate-200]="!soloFavoritos()"
           (click)="cambiarSoloFavoritos()"
         >
-          ★ Favoritos ({{ cantidadDeFavoritos() }})
+          ★ Favoritos ({{ favoritosService.cantidad() }})
         </button>
 
         <p class="text-sm text-slate-500">
-          {{ productosFiltrados().length }} de {{ productos().length }} productos
+          {{ productosFiltrados().length }} de {{ productoService.productos().length }} productos
         </p>
       </div>
     </div>
 
+    @if (productoService.cargando()) {
+      <p class="bg-white rounded-2xl py-12 px-6 text-center text-slate-500">
+        Cargando jerseys...
+      </p>
+    } @else if (productoService.error()) {
+      <p class="bg-white rounded-2xl py-12 px-6 text-center text-red-600">
+        {{ productoService.error() }}
+      </p>
+    } @else {
     <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
       @for (producto of productosFiltrados(); track producto.id) {
         <app-product-card
@@ -54,13 +63,13 @@
           [precio]="producto.precio"
           [imagen]="producto.imagen"
           [stock]="producto.stock"
-          [esFavorito]="esFavorito(producto.id)"
+          [esFavorito]="favoritosService.esFavorito(producto.id)"
           (addToCart)="manejarAgregarAlCarrito($event)"
           (toggleFavorito)="manejarToggleFavorito($event)"
         />
       } @empty {
         <p class="col-span-full bg-white rounded-2xl py-12 px-6 text-center text-slate-500">
-          @if (soloFavoritos() && cantidadDeFavoritos() === 0) {
+          @if (soloFavoritos() && favoritosService.cantidad() === 0) {
             Todavía no guardaste ningún jersey. Toca la estrella ☆ de una tarjeta para verlo aquí.
           } @else {
             Ningún jersey coincide con «{{ textoBuscado() }}». Prueba con otro equipo o modelo.
@@ -68,6 +77,7 @@
         </p>
       }
     </section>
+    }
   </main>
 
   <aside class="w-full lg:w-80 bg-white border-l border-slate-200 p-6">
@@ -79,13 +89,13 @@
         <span
           class="ml-auto inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full bg-emerald-500 text-white font-bold text-sm"
         >
-          {{ cantidadDeItems() }}
+          {{ carritoService.cantidadDeItems() }}
         </span>
       </div>
 
-      @if (elementosCarrito().length > 0) {
+      @if (carritoService.elementos().length > 0) {
         <div class="space-y-3 mb-6 max-h-96 overflow-y-auto">
-          @for (item of elementosCarrito(); track item.id) {
+          @for (item of carritoService.elementos(); track item.id) {
             <div class="flex items-center gap-3 bg-slate-50 rounded-xl p-3">
               <img
                 [src]="item.imagen"
@@ -106,7 +116,7 @@
                   type="button"
                   class="text-xs text-slate-400 hover:text-red-500 transition-colors"
                  
-                  (click)="quitarDelCarrito(item.id)"
+                  (click)="carritoService.quitar(item.id)"
                 >
                   Quitar
                 </button>
@@ -121,16 +131,16 @@
       <div class="space-y-2 border-t border-slate-200 pt-4">
         <div class="flex justify-between text-sm text-slate-600">
           <span>Total de items</span>
-          <span class="font-medium text-slate-800">{{ cantidadDeItems() }}</span>
+          <span class="font-medium text-slate-800">{{ carritoService.cantidadDeItems() }}</span>
         </div>
 
         <div class="flex justify-between text-base">
           <span class="text-slate-600">Total a pagar</span>
-          <span class="font-bold text-emerald-600">S/ {{ precioTotal() }}.00</span>
+          <span class="font-bold text-emerald-600">S/ {{ carritoService.precioTotal() }}.00</span>
         </div>
       </div>
 
-      @if (elementosCarrito().length > 0) {
+      @if (carritoService.elementos().length > 0) {
         <button
           type="button"
           class="w-full mt-4 py-2.5 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-700 transition-colors"
@@ -141,7 +151,7 @@
         <button
           type="button"
           class="w-full mt-2 py-2 text-sm text-slate-500 hover:text-red-500 transition-colors"
-          (click)="vaciarCarrito()"
+          (click)="carritoService.vaciar()"
         >
           Vaciar carrito
         </button>
@@ -155,7 +165,7 @@
           <span
             class="ml-auto inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full bg-slate-900 text-white font-bold text-sm"
           >
-            {{ cantidadDeFavoritos() }}
+            {{ favoritosService.cantidad() }}
           </span>
         </div>
 
