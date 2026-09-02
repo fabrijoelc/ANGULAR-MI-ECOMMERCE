@@ -1,12 +1,35 @@
 import { Routes } from '@angular/router';
-import { ListaProductos } from './components/lista-productos/lista-productos';
-import { Login } from './pages/login/login';
-import { Registro } from './pages/registro/registro';
+import { Home } from './features/home/home';
+import { NotFound } from './features/not-found/not-found';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'catalogo', pathMatch: 'full' },
-  { path: 'catalogo', component: ListaProductos },
-  { path: 'login', component: Login },
-  { path: 'registro', component: Registro },
-  { path: '**', redirectTo: 'catalogo' },
+  // El home y la 404 quedan eager: son las que se ven de entrada.
+  { path: '', component: Home },
+
+  // Estas se descargan recien cuando entras a ellas (lazy loading).
+  {
+    path: 'catalogo',
+    loadComponent: () =>
+      import('./components/lista-productos/lista-productos').then((m) => m.ListaProductos),
+  },
+  {
+    path: 'producto/:id',
+    loadComponent: () =>
+      import('./features/product-detail/product-detail').then((m) => m.ProductDetail),
+  },
+  {
+    path: 'carrito',
+    loadComponent: () => import('./features/cart/cart').then((m) => m.Cart),
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./pages/login/login').then((m) => m.Login),
+  },
+  {
+    path: 'registro',
+    loadComponent: () => import('./pages/registro/registro').then((m) => m.Registro),
+  },
+
+  // Ruta comodin: siempre al final del array.
+  { path: '**', component: NotFound },
 ];

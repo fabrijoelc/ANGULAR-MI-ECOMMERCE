@@ -1,10 +1,11 @@
 import { Component, input, model, output } from '@angular/core';
 import { IProductoCarrito } from '../../interfaces/producto.interface';
+import { RouterLink } from '@angular/router';
 import { EstadoStockPipe } from '../../pipes/estado-stock-pipe';
 
 @Component({
   selector: 'app-product-card',
-  imports: [EstadoStockPipe],
+  imports: [EstadoStockPipe, RouterLink],
   templateUrl: './product-card.html',
 })
 export class ProductCard {

@@ -6,7 +6,7 @@
   />
 
   <div class="relative max-w-7xl mx-auto px-6 py-6 flex flex-wrap items-center justify-between gap-4">
-    <a routerLink="/catalogo" class="flex items-center gap-3">
+    <a routerLink="/" class="flex items-center gap-3">
       <span class="text-3xl">🏀</span>
       <div>
         <h1 class="text-2xl font-bold">Tienda de Jerseys NBA</h1>
@@ -16,6 +16,15 @@
 
     <nav class="flex items-center gap-2">
       <a
+        routerLink="/"
+        routerLinkActive="bg-white text-slate-900"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+      >
+        Inicio
+      </a>
+
+      <a
         routerLink="/catalogo"
         routerLinkActive="bg-white text-slate-900"
         class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
@@ -24,7 +33,8 @@
       </a>
 
       <a
-        routerLink="/catalogo"
+        routerLink="/carrito"
+        routerLinkActive="bg-white text-slate-900"
         class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
       >
         Carrito ({{ carritoService.cantidadDeItems() }})
