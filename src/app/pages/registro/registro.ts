@@ -27,8 +27,8 @@ export class Registro {
     return {
       nombre: this.nombre().trim().length < 3 ? 'Escribe tu nombre y apellido.' : '',
       correo: !this.correo().includes('@') ? 'El correo debe tener un @.' : '',
-      clave: this.clave().length < 6 ? 'La contraseña necesita 6 caracteres como mínimo.' : '',
-      repetirClave: this.repetirClave() !== this.clave() ? 'Las contraseñas no coinciden.' : '',
+      clave: this.clave().length < 6 ? 'La contrasena necesita 6 caracteres como mínimo.' : '',
+      repetirClave: this.repetirClave() !== this.clave() ? 'Las contrasenas no coinciden.' : '',
     };
   });
 

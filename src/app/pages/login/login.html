@@ -45,14 +45,14 @@
 
         <div>
           <label for="clave-login" class="block text-sm font-medium text-slate-700 mb-1">
-            Contraseña
+            Contrasena
           </label>
 
           <div class="flex gap-2">
             <input
               id="clave-login"
               [type]="verClave() ? 'text' : 'password'"
-              placeholder="Tu contraseña"
+              placeholder="Tu contrasena"
               class="flex-1 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500"
               [value]="clave()"
               (input)="escribir(clave, $event)"

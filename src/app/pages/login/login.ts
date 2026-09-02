@@ -24,7 +24,7 @@ export class Login {
   errores = computed(() => {
     return {
       correo: !this.correo().includes('@') ? 'Ingresa un correo válido.' : '',
-      clave: this.clave().length === 0 ? 'Escribe tu contraseña.' : '',
+      clave: this.clave().length === 0 ? 'Escribe tu contrasena.' : '',
     };
   });
 
@@ -60,7 +60,7 @@ export class Login {
         this.notificacionService.show('Bienvenido de vuelta', 'exito');
         this.router.navigate(['/catalogo']);
       } else {
-        this.notificacionService.show('Correo o contraseña incorrectos', 'error');
+        this.notificacionService.show('Correo o contrasena incorrectos', 'error');
       }
     } catch {
       this.notificacionService.show('No se pudo conectar con el servidor', 'error');
