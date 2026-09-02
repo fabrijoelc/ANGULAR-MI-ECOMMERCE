@@ -1,4 +1,12 @@
-<app-header />
-<router-outlet />
-<app-footer />
+<!-- Columna flex de alto completo: asi el footer siempre queda abajo. -->
+<div class="min-h-screen flex flex-col bg-slate-100">
+  <app-header />
+
+  <main class="flex-1">
+    <router-outlet />
+  </main>
+
+  <app-footer />
+</div>
+
 <app-toast-container />
