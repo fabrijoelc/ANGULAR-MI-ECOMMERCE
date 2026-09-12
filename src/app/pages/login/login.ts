@@ -1,41 +1,36 @@
-import { Component, computed, inject, signal, WritableSignal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { UsuarioService } from '../../services/usuario-service';
 import { NotificacionService } from '../../services/notificacion-service';
 
 @Component({
   selector: 'app-login',
-  imports: [RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
 })
 export class Login {
+  private fb = inject(FormBuilder);
   private router = inject(Router);
+
   usuarioService = inject(UsuarioService);
   notificacionService = inject(NotificacionService);
 
-  correo = signal('');
-  clave = signal('');
   verClave = signal(false);
-
-  intentoEnviar = signal(false);
-  sesionIniciada = signal(false);
   verificando = signal(false);
 
-  errores = computed(() => {
-    return {
-      correo: !this.correo().includes('@') ? 'Ingresa un correo válido.' : '',
-      clave: this.clave().length === 0 ? 'Escribe tu contrasena.' : '',
-    };
+  loginForm = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+    clave: ['', [Validators.required, Validators.minLength(6)]],
+    recordarme: [false],
   });
 
-  formularioValido = computed(() => {
-    const errores = this.errores();
-    return errores.correo === '' && errores.clave === '';
-  });
+  get email() {
+    return this.loginForm.get('email');
+  }
 
-  escribir(campo: WritableSignal<string>, evento: Event) {
-    const input = evento.target as HTMLInputElement;
-    campo.set(input.value);
+  get clave() {
+    return this.loginForm.get('clave');
   }
 
   cambiarVisibilidadClave() {
@@ -43,20 +38,20 @@ export class Login {
   }
 
   async iniciarSesion() {
-    this.intentoEnviar.set(true);
-
-    if (!this.formularioValido()) {
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
       return;
     }
 
     this.verificando.set(true);
 
     try {
-      // El servicio busca el correo en Supabase y compara la contrasena cifrada.
-      const correcto = await this.usuarioService.loguear(this.correo(), this.clave());
+      const correcto = await this.usuarioService.loguear(
+        this.loginForm.controls.email.value,
+        this.loginForm.controls.clave.value,
+      );
 
       if (correcto) {
-        this.sesionIniciada.set(true);
         this.notificacionService.show('Bienvenido de vuelta', 'exito');
         this.router.navigate(['/catalogo']);
       } else {
@@ -71,9 +66,6 @@ export class Login {
 
   cerrarSesion() {
     this.usuarioService.cerrarSesion();
-    this.correo.set('');
-    this.clave.set('');
-    this.intentoEnviar.set(false);
-    this.sesionIniciada.set(false);
+    this.loginForm.reset();
   }
 }

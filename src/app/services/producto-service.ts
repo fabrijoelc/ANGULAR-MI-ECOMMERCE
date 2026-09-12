@@ -5,14 +5,6 @@ import { IProductoTienda } from '../interfaces/producto.interface';
 
 const PRODUCTOS_URL = `${environment.supabaseUrl}/producto`;
 
-// Cabeceras que pide Supabase en cada peticion.
-const SUPABASE_HEADERS = {
-  apikey: environment.supabaseKey,
-  Authorization: `Bearer ${environment.supabaseKey}`,
-  'Content-Type': 'application/json',
-  Prefer: 'return=representation',
-};
-
 @Injectable({ providedIn: 'root' })
 export class ProductoService {
   private http = inject(HttpClient);
@@ -27,7 +19,7 @@ export class ProductoService {
     this.cargando.set(true);
     this.error.set('');
 
-    this.http.get<IProductoTienda[]>(PRODUCTOS_URL, { headers: SUPABASE_HEADERS }).subscribe({
+    this.http.get<IProductoTienda[]>(PRODUCTOS_URL).subscribe({
       next: (datos) => {
         this.productosSignal.set(datos);
       },
@@ -42,21 +34,15 @@ export class ProductoService {
   }
 
   crearProducto(producto: Omit<IProductoTienda, 'id'>) {
-    return this.http.post<IProductoTienda>(PRODUCTOS_URL, producto, {
-      headers: SUPABASE_HEADERS,
-    });
+    return this.http.post<IProductoTienda>(PRODUCTOS_URL, producto);
   }
 
   // En Supabase el registro se elige con un filtro: ?id=eq.<valor>
   actualizarProducto(id: string, producto: Partial<Omit<IProductoTienda, 'id'>>) {
-    return this.http.patch<IProductoTienda>(`${PRODUCTOS_URL}?id=eq.${id}`, producto, {
-      headers: SUPABASE_HEADERS,
-    });
+    return this.http.patch<IProductoTienda>(`${PRODUCTOS_URL}?id=eq.${id}`, producto);
   }
 
   eliminarProducto(id: string) {
-    return this.http.delete<IProductoTienda>(`${PRODUCTOS_URL}?id=eq.${id}`, {
-      headers: SUPABASE_HEADERS,
-    });
+    return this.http.delete<IProductoTienda>(`${PRODUCTOS_URL}?id=eq.${id}`);
   }
 }

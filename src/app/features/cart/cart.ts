@@ -24,10 +24,8 @@ export class Cart {
     this.notificacionService.show('Vaciaste el carrito', 'info');
   }
 
-  // Al terminar la compra el Router nos lleva al inicio.
-  finalizarCompra() {
-    this.notificacionService.show('Compra realizada, gracias por tu pedido', 'exito');
-    this.carritoService.vaciar();
-    this.router.navigate(['/']);
+  // El checkout esta protegido: si no hay sesion, el guard redirige al login.
+  irAlCheckout() {
+    this.router.navigate(['/checkout']);
   }
 }

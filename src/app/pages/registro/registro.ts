@@ -1,75 +1,86 @@
-import { Component, computed, inject, signal, WritableSignal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { UsuarioService } from '../../services/usuario-service';
 import { NotificacionService } from '../../services/notificacion-service';
 
+// Validador propio a nivel de grupo: compara los dos campos entre si.
+function clavesIguales(): ValidatorFn {
+  return (grupo: AbstractControl): ValidationErrors | null => {
+    const clave = grupo.get('clave')?.value;
+    const repetir = grupo.get('repetirClave')?.value;
+
+    return clave === repetir ? null : { clavesNoCoinciden: true };
+  };
+}
+
 @Component({
   selector: 'app-registro',
-  imports: [RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './registro.html',
 })
 export class Registro {
+  private fb = inject(FormBuilder);
   private router = inject(Router);
+
   usuarioService = inject(UsuarioService);
   notificacionService = inject(NotificacionService);
 
-  nombre = signal('');
-  correo = signal('');
-  clave = signal('');
-  repetirClave = signal('');
-
-  // Recien muestro los errores cuando el usuario intenta enviar el formulario.
-  intentoEnviar = signal(false);
-  cuentaCreada = signal(false);
   guardando = signal(false);
 
-  errores = computed(() => {
-    return {
-      nombre: this.nombre().trim().length < 3 ? 'Escribe tu nombre y apellido.' : '',
-      correo: !this.correo().includes('@') ? 'El correo debe tener un @.' : '',
-      clave: this.clave().length < 6 ? 'La contrasena necesita 6 caracteres como mínimo.' : '',
-      repetirClave: this.repetirClave() !== this.clave() ? 'Las contrasenas no coinciden.' : '',
-    };
-  });
+  registroForm = this.fb.nonNullable.group(
+    {
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.email]],
+      clave: ['', [Validators.required, Validators.minLength(6)]],
+      repetirClave: ['', Validators.required],
+    },
+    { validators: clavesIguales() },
+  );
 
-  formularioValido = computed(() => {
-    const errores = this.errores();
-    return (
-      errores.nombre === '' &&
-      errores.correo === '' &&
-      errores.clave === '' &&
-      errores.repetirClave === ''
-    );
-  });
+  get nombre() {
+    return this.registroForm.get('nombre');
+  }
 
-  escribir(campo: WritableSignal<string>, evento: Event) {
-    const input = evento.target as HTMLInputElement;
-    campo.set(input.value);
+  get email() {
+    return this.registroForm.get('email');
+  }
+
+  get clave() {
+    return this.registroForm.get('clave');
+  }
+
+  get repetirClave() {
+    return this.registroForm.get('repetirClave');
   }
 
   async crearCuenta() {
-    this.intentoEnviar.set(true);
-
-    if (!this.formularioValido()) {
+    if (this.registroForm.invalid) {
+      this.registroForm.markAllAsTouched();
       return;
     }
 
     this.guardando.set(true);
 
     try {
-      // El servicio cifra la contrasena antes de guardarla en Supabase.
       const creada = await this.usuarioService.registrar(
-        this.nombre(),
-        this.correo(),
-        this.clave(),
+        this.registroForm.controls.nombre.value,
+        this.registroForm.controls.email.value,
+        this.registroForm.controls.clave.value,
       );
 
       if (creada) {
-        this.cuentaCreada.set(true);
-        this.notificacionService.show('Cuenta creada, ya puedes iniciar sesión', 'exito');
+        this.notificacionService.show('Cuenta creada, ya puedes iniciar sesion', 'exito');
         this.router.navigate(['/login']);
       } else {
-        this.notificacionService.show('Ese correo ya está registrado', 'error');
+        this.notificacionService.show('Ese correo ya esta registrado', 'error');
       }
     } catch {
       this.notificacionService.show('No se pudo conectar con el servidor', 'error');
@@ -79,11 +90,6 @@ export class Registro {
   }
 
   limpiarFormulario() {
-    this.nombre.set('');
-    this.correo.set('');
-    this.clave.set('');
-    this.repetirClave.set('');
-    this.intentoEnviar.set(false);
-    this.cuentaCreada.set(false);
+    this.registroForm.reset();
   }
 }

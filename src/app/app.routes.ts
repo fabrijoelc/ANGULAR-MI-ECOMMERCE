@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Home } from './features/home/home';
 import { NotFound } from './features/not-found/not-found';
+import { authGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
   // El home y la 404 quedan eager: son las que se ven de entrada.
@@ -20,6 +21,12 @@ export const routes: Routes = [
   {
     path: 'carrito',
     loadComponent: () => import('./features/cart/cart').then((m) => m.Cart),
+  },
+  // Protegida: si no hay sesion, el guard manda al login.
+  {
+    path: 'checkout',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/checkout/checkout').then((m) => m.Checkout),
   },
   {
     path: 'login',

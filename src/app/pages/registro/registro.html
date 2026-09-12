@@ -1,104 +1,103 @@
-<section class="min-h-[70vh] bg-slate-100 flex items-start justify-center px-6 py-12">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
-    @if (cuentaCreada()) {
-      <div class="text-center">
-        <p class="text-4xl mb-3">🏀</p>
-        <h2 class="text-2xl font-bold text-slate-800">¡Bienvenido, {{ nombre() }}!</h2>
-        <p class="text-slate-500 mt-2">
-          Tu cuenta quedó registrada con el correo {{ correo() }}.
+<div class="max-w-md mx-auto px-6 py-12">
+  <div class="bg-white rounded-2xl shadow-md p-8">
+    <h2 class="text-2xl font-bold text-slate-800">Crear cuenta</h2>
+    <p class="mt-1 text-sm text-slate-500">Registrate para guardar tus pedidos.</p>
+
+    <form class="mt-6" [formGroup]="registroForm" (ngSubmit)="crearCuenta()">
+      <label class="block text-sm text-slate-600">
+        Nombre y apellido
+        <input
+          type="text"
+          formControlName="nombre"
+          class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+          [class.border-red-400]="nombre?.invalid && nombre?.touched"
+          [class.border-slate-200]="!(nombre?.invalid && nombre?.touched)"
+        />
+      </label>
+      @if (nombre?.invalid && nombre?.touched) {
+        <p class="mt-1 text-xs text-red-600">
+          @if (nombre?.hasError('required')) {
+            Escribe tu nombre.
+          } @else {
+            Necesita 3 caracteres como minimo.
+          }
         </p>
+      }
 
-        <button
-          type="button"
-          class="w-full mt-6 py-2.5 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-700 active:scale-95 transition-all duration-150"
-          (click)="limpiarFormulario()"
-        >
-          Registrar otra cuenta
-        </button>
-      </div>
-    } @else {
-      <h2 class="text-2xl font-bold text-slate-800">Crea tu cuenta</h2>
-      <p class="text-sm text-slate-500 mt-1 mb-6">
-        Regístrate para guardar tus jerseys favoritos.
-      </p>
-
-      <form class="space-y-4" (submit)="$event.preventDefault(); crearCuenta()">
-        <div>
-          <label for="nombre" class="block text-sm font-medium text-slate-700 mb-1">
-            Nombre completo
-          </label>
-          <input
-            id="nombre"
-            type="text"
-            placeholder="Fabrizio Allcca"
-            class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500"
-            [value]="nombre()"
-            (input)="escribir(nombre, $event)"
-          />
-          @if (intentoEnviar() && errores().nombre) {
-            <p class="text-xs text-red-600 mt-1">{{ errores().nombre }}</p>
+      <label class="mt-4 block text-sm text-slate-600">
+        Correo
+        <input
+          type="email"
+          formControlName="email"
+          class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+          [class.border-red-400]="email?.invalid && email?.touched"
+          [class.border-slate-200]="!(email?.invalid && email?.touched)"
+        />
+      </label>
+      @if (email?.invalid && email?.touched) {
+        <p class="mt-1 text-xs text-red-600">
+          @if (email?.hasError('required')) {
+            Escribe tu correo.
+          } @else {
+            Ingresa un correo valido.
           }
-        </div>
+        </p>
+      }
 
-        <div>
-          <label for="correo" class="block text-sm font-medium text-slate-700 mb-1">Correo</label>
-          <input
-            id="correo"
-            type="email"
-            placeholder="fabrizio@correo.com"
-            class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500"
-            [value]="correo()"
-            (input)="escribir(correo, $event)"
-          />
-          @if (intentoEnviar() && errores().correo) {
-            <p class="text-xs text-red-600 mt-1">{{ errores().correo }}</p>
+      <label class="mt-4 block text-sm text-slate-600">
+        Contrasena
+        <input
+          type="password"
+          formControlName="clave"
+          class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+          [class.border-red-400]="clave?.invalid && clave?.touched"
+          [class.border-slate-200]="!(clave?.invalid && clave?.touched)"
+        />
+      </label>
+      @if (clave?.invalid && clave?.touched) {
+        <p class="mt-1 text-xs text-red-600">
+          @if (clave?.hasError('required')) {
+            Escribe una contrasena.
+          } @else {
+            Necesita 6 caracteres como minimo.
           }
-        </div>
+        </p>
+      }
 
-        <div>
-          <label for="clave" class="block text-sm font-medium text-slate-700 mb-1">Contrasena</label>
-          <input
-            id="clave"
-            type="password"
-            placeholder="Mínimo 6 caracteres"
-            class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500"
-            [value]="clave()"
-            (input)="escribir(clave, $event)"
-          />
-          @if (intentoEnviar() && errores().clave) {
-            <p class="text-xs text-red-600 mt-1">{{ errores().clave }}</p>
-          }
-        </div>
+      <label class="mt-4 block text-sm text-slate-600">
+        Repetir contrasena
+        <input
+          type="password"
+          formControlName="repetirClave"
+          class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+          [class.border-red-400]="registroForm.hasError('clavesNoCoinciden') && repetirClave?.touched"
+          [class.border-slate-200]="!(registroForm.hasError('clavesNoCoinciden') && repetirClave?.touched)"
+        />
+      </label>
+      @if (registroForm.hasError('clavesNoCoinciden') && repetirClave?.touched) {
+        <p class="mt-1 text-xs text-red-600">Las contrasenas no coinciden.</p>
+      }
 
-        <div>
-          <label for="repetir" class="block text-sm font-medium text-slate-700 mb-1">
-            Repetir contrasena
-          </label>
-          <input
-            id="repetir"
-            type="password"
-            placeholder="Escríbela otra vez"
-            class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500"
-            [value]="repetirClave()"
-            (input)="escribir(repetirClave, $event)"
-          />
-          @if (intentoEnviar() && errores().repetirClave) {
-            <p class="text-xs text-red-600 mt-1">{{ errores().repetirClave }}</p>
-          }
-        </div>
+      <button
+        type="submit"
+        class="mt-6 w-full py-2.5 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-700 disabled:bg-slate-400"
+        [disabled]="guardando()"
+      >
+        {{ guardando() ? 'Creando...' : 'Crear cuenta' }}
+      </button>
 
-        <button
-          type="submit"
-          class="w-full py-2.5 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-700 active:scale-95 transition-all duration-150"
-        >
-          Crear cuenta
-        </button>
-      </form>
+      <button
+        type="button"
+        class="mt-2 w-full py-2 text-sm text-slate-500 hover:text-slate-800"
+        (click)="limpiarFormulario()"
+      >
+        Limpiar
+      </button>
+    </form>
 
-      <p class="text-sm text-slate-500 text-center mt-6">
-        ¿Ya tienes cuenta?
-        <a routerLink="/login" class="text-emerald-600 font-medium hover:underline">Inicia sesión</a>
-      </p>
-    }
+    <p class="mt-6 text-center text-sm text-slate-500">
+      Ya tienes cuenta?
+      <a routerLink="/login" class="text-emerald-600 hover:text-emerald-700">Iniciar sesion</a>
+    </p>
   </div>
-</section>
+</div>

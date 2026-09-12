@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import bcrypt from 'bcryptjs';
@@ -7,19 +7,15 @@ import { IUsuario } from '../interfaces/usuario.interface';
 
 const USUARIOS_URL = `${environment.supabaseUrl}/usuario`;
 
-const SUPABASE_HEADERS = {
-  apikey: environment.supabaseKey,
-  Authorization: `Bearer ${environment.supabaseKey}`,
-  'Content-Type': 'application/json',
-  Prefer: 'return=representation',
-};
-
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
   private http = inject(HttpClient);
 
   private usuarioActivoSignal = signal<IUsuario | null>(null);
   usuarioActivo = this.usuarioActivoSignal.asReadonly();
+
+  // Lo usa el authGuard para decidir si deja entrar al checkout.
+  isLoggedIn = computed(() => this.usuarioActivoSignal() !== null);
 
   constructor() {
     const guardado = localStorage.getItem('nba-usuario');
@@ -30,9 +26,7 @@ export class UsuarioService {
 
   async loguear(email: string, contrasena: string): Promise<boolean> {
     const usuarios = await firstValueFrom(
-      this.http.get<IUsuario[]>(`${USUARIOS_URL}?email=eq.${email}`, {
-        headers: SUPABASE_HEADERS,
-      }),
+      this.http.get<IUsuario[]>(`${USUARIOS_URL}?email=eq.${email}`),
     );
 
     if (!usuarios || usuarios.length === 0) {
@@ -55,9 +49,7 @@ export class UsuarioService {
 
   async registrar(nombres: string, email: string, contrasena: string): Promise<boolean> {
     const existentes = await firstValueFrom(
-      this.http.get<IUsuario[]>(`${USUARIOS_URL}?email=eq.${email}`, {
-        headers: SUPABASE_HEADERS,
-      }),
+      this.http.get<IUsuario[]>(`${USUARIOS_URL}?email=eq.${email}`),
     );
 
     if (existentes && existentes.length > 0) {
@@ -71,7 +63,6 @@ export class UsuarioService {
       this.http.post<IUsuario>(
         USUARIOS_URL,
         { nombres, email, contrasena: contrasenaCifrada },
-        { headers: SUPABASE_HEADERS },
       ),
     );
 
