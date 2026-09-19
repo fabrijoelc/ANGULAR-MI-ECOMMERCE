@@ -18,14 +18,17 @@ export const apiKeyInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  const peticionConApiKey = req.clone({
-    setHeaders: {
-      apikey: environment.supabaseKey,
-      Authorization: `Bearer ${environment.supabaseKey}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=representation',
-    },
-  });
+  const cabeceras: Record<string, string> = {
+    apikey: environment.supabaseKey,
+    Authorization: `Bearer ${environment.supabaseKey}`,
+    'Content-Type': 'application/json',
+  };
 
-  return next(peticionConApiKey);
+  // Si la peticion ya trae su propio Prefer (por ejemplo count=exact para
+  // paginar) no lo pisamos; si no trae, usamos el de siempre.
+  if (!req.headers.has('Prefer')) {
+    cabeceras['Prefer'] = 'return=representation';
+  }
+
+  return next(req.clone({ setHeaders: cabeceras }));
 };

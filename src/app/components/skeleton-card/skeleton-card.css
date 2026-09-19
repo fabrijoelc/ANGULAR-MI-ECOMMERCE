@@ -1,0 +1,34 @@
+/* Cada bloque gris tiene una franja clara que lo recorre de izquierda
+   a derecha: ese brillo que se mueve es el efecto "shimmer". */
+.bloque {
+  position: relative;
+  overflow: hidden;
+  background-color: #e2e8f0;
+}
+
+.bloque::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  animation: brillo 1.4s ease-in-out infinite;
+}
+
+@keyframes brillo {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Si la persona pidio menos movimiento en su sistema, lo apagamos. */
+@media (prefers-reduced-motion: reduce) {
+  .bloque::after {
+    animation: none;
+  }
+}

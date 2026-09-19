@@ -1,83 +1,65 @@
 <div>
   <main class="max-w-7xl mx-auto p-6 lg:p-10">
-    <div class="flex items-center gap-2 mb-6">
-      <input
-        type="search"
-        [value]="textoBuscado()"
-        (input)="alBuscar($event)"
-        placeholder="Buscar por equipo o modelo"
-        class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
-      />
+    <app-producto-filtro
+      [texto]="textoBusqueda()"
+      [equipo]="equipo()"
+      (textoCambio)="alBuscar($event)"
+      (equipoCambio)="alCambiarEquipo($event)"
+    />
 
-      @if (textoBuscado()) {
-        <button
-          type="button"
-          class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-700 transition-colors"
-          (click)="limpiarBusqueda()"
-        >
-          Limpiar
-        </button>
-      }
-    </div>
-
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <div class="mt-6 mb-6 flex flex-wrap items-baseline justify-between gap-3">
       <h2 class="text-2xl font-bold text-slate-800">Nuestros jerseys</h2>
 
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="px-4 py-2 rounded-xl text-sm font-medium border transition-colors"
-          [class.bg-slate-900]="soloFavoritos()"
-          [class.text-white]="soloFavoritos()"
-          [class.border-slate-900]="soloFavoritos()"
-          [class.bg-white]="!soloFavoritos()"
-          [class.text-slate-600]="!soloFavoritos()"
-          [class.border-slate-200]="!soloFavoritos()"
-          (click)="cambiarSoloFavoritos()"
-        >
-          ★ Favoritos ({{ favoritosService.cantidad() }})
-        </button>
-
+      @if (!cargando()) {
         <p class="text-sm text-slate-500">
-          {{ productosFiltrados().length }} de {{ productoService.productos().length }} productos
-        </p>
-      </div>
-    </div>
-
-    @if (productoService.cargando()) {
-      <p class="bg-white rounded-2xl py-12 px-6 text-center text-slate-500">
-        Cargando jerseys...
-      </p>
-    } @else if (productoService.error()) {
-      <p class="bg-white rounded-2xl py-12 px-6 text-center text-red-600">
-        {{ productoService.error() }}
-      </p>
-    } @else {
-    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-      @for (producto of productosFiltrados(); track producto.id) {
-        <app-product-card
-          [id]="producto.id"
-          [nombre]="producto.nombre"
-          [equipo]="producto.equipo"
-          [abrev]="producto.abrev"
-          [precio]="producto.precio"
-          [imagen]="producto.imagen"
-          [stock]="producto.stock"
-          [esFavorito]="favoritosService.esFavorito(producto.id)"
-          (addToCart)="manejarAgregarAlCarrito($event)"
-          (toggleFavorito)="manejarToggleFavorito($event)"
-        />
-      } @empty {
-        <p class="col-span-full bg-white rounded-2xl py-12 px-6 text-center text-slate-500">
-          @if (soloFavoritos() && favoritosService.cantidad() === 0) {
-            Todavía no guardaste ningún jersey. Toca la estrella ☆ de una tarjeta para verlo aquí.
-          } @else {
-            Ningún jersey coincide con «{{ textoBuscado() }}». Prueba con otro equipo o modelo.
-          }
+          Mostrando {{ desde() }}-{{ hasta() }} de {{ total() }}
         </p>
       }
-    </section>
-    }
-  </main>
+    </div>
 
+    <!-- Tres estados: cargando, sin resultados, con resultados -->
+    @if (cargando()) {
+      <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        @for (i of skeletons; track i) {
+          <app-skeleton-card />
+        }
+      </section>
+    } @else if (productos().length === 0) {
+      <div class="bg-white rounded-2xl py-12 px-6 text-center">
+        <p class="text-slate-500">
+          Ningun jersey coincide con la busqueda.
+        </p>
+        <button
+          type="button"
+          class="mt-4 px-5 py-2 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-700"
+          (click)="limpiarBusqueda(); alCambiarEquipo('')"
+        >
+          Ver todos
+        </button>
+      </div>
+    } @else {
+      <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        @for (producto of productos(); track producto.id) {
+          <app-product-card
+            [id]="producto.id"
+            [nombre]="producto.nombre"
+            [equipo]="producto.equipo"
+            [abrev]="producto.abrev"
+            [precio]="producto.precio"
+            [imagen]="producto.imagen"
+            [stock]="producto.stock"
+            [esFavorito]="favoritosService.esFavorito(producto.id)"
+            (addToCart)="manejarAgregarAlCarrito($event)"
+            (toggleFavorito)="manejarToggleFavorito($event)"
+          />
+        }
+      </section>
+    }
+
+    <app-paginacion
+      [pagina]="paginaActual()"
+      [totalPaginas]="totalPaginas()"
+      (cambioPagina)="alCambiarPagina($event)"
+    />
+  </main>
 </div>

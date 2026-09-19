@@ -1,0 +1,51 @@
+<div class="flex items-center gap-2">
+  <input
+    type="search"
+    [value]="texto()"
+    (input)="alEscribir($event)"
+    placeholder="Buscar jersey por nombre"
+    class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+  />
+
+  @if (texto()) {
+    <button
+      type="button"
+      class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-700 transition-colors"
+      (click)="limpiar()"
+    >
+      Limpiar
+    </button>
+  }
+</div>
+
+<div class="mt-4 flex flex-wrap gap-2">
+  <button
+    type="button"
+    class="px-4 py-2 rounded-full text-sm border transition-colors"
+    [class.bg-slate-900]="equipo() === ''"
+    [class.text-white]="equipo() === ''"
+    [class.border-slate-900]="equipo() === ''"
+    [class.bg-white]="equipo() !== ''"
+    [class.text-slate-600]="equipo() !== ''"
+    [class.border-slate-200]="equipo() !== ''"
+    (click)="elegirEquipo('')"
+  >
+    Todos
+  </button>
+
+  @for (nombre of equipos(); track nombre) {
+    <button
+      type="button"
+      class="px-4 py-2 rounded-full text-sm border transition-colors"
+      [class.bg-slate-900]="equipo() === nombre"
+      [class.text-white]="equipo() === nombre"
+      [class.border-slate-900]="equipo() === nombre"
+      [class.bg-white]="equipo() !== nombre"
+      [class.text-slate-600]="equipo() !== nombre"
+      [class.border-slate-200]="equipo() !== nombre"
+      (click)="elegirEquipo(nombre)"
+    >
+      {{ nombre }}
+    </button>
+  }
+</div>

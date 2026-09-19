@@ -1,0 +1,37 @@
+@if (totalPaginas() > 1) {
+  <nav class="mt-8 flex flex-wrap items-center justify-center gap-2">
+    <button
+      type="button"
+      class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+      [disabled]="pagina() === 1"
+      (click)="anterior()"
+    >
+      ← Anterior
+    </button>
+
+    @for (numero of listaPaginas(); track numero) {
+      <button
+        type="button"
+        class="w-10 h-10 rounded-lg border text-sm font-medium transition-colors"
+        [class.bg-slate-900]="numero === pagina()"
+        [class.text-white]="numero === pagina()"
+        [class.border-slate-900]="numero === pagina()"
+        [class.bg-white]="numero !== pagina()"
+        [class.text-slate-700]="numero !== pagina()"
+        [class.border-slate-200]="numero !== pagina()"
+        (click)="irA(numero)"
+      >
+        {{ numero }}
+      </button>
+    }
+
+    <button
+      type="button"
+      class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+      [disabled]="pagina() >= totalPaginas()"
+      (click)="siguiente()"
+    >
+      Siguiente →
+    </button>
+  </nav>
+}
