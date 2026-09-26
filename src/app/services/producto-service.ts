@@ -1,6 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { IProductoTienda } from '../interfaces/producto.interface';
 import { IBusquedaRespuesta } from '../interfaces/busqueda.interface';
@@ -73,6 +73,29 @@ export class ProductoService {
       );
   }
 
+
+  // Devuelve el stock actual de varios jerseys: { id: stock }.
+  verificarStock(ids: string[]): Observable<Record<string, number>> {
+    if (ids.length === 0) {
+      return of({});
+    }
+
+    return this.http
+      .get<{ id: string; stock: number }[]>(PRODUCTOS_URL, {
+        params: { select: 'id,stock', id: `in.(${ids.join(',')})` },
+      })
+      .pipe(
+        map((filas) => {
+          const porId: Record<string, number> = {};
+
+          for (const fila of filas) {
+            porId[fila.id] = fila.stock;
+          }
+
+          return porId;
+        }),
+      );
+  }
 
   crearProducto(producto: Omit<IProductoTienda, 'id'>) {
     return this.http.post<IProductoTienda>(PRODUCTOS_URL, producto);

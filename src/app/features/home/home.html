@@ -77,7 +77,7 @@
 
           <p class="text-xs text-slate-500 uppercase mt-3">{{ producto.abrev }}</p>
           <h4 class="text-sm font-semibold text-slate-800 leading-tight">{{ producto.nombre }}</h4>
-          <p class="text-emerald-600 font-bold mt-1">S/ {{ producto.precio }}.00</p>
+          <p class="text-emerald-600 font-bold mt-1">S/ {{ producto.precio.toFixed(2) }}</p>
         </a>
       } @empty {
         <p class="col-span-full bg-white rounded-2xl py-12 text-center text-slate-500">

@@ -1,156 +1,214 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
-  <button
-    type="button"
-    class="mb-6 text-sm text-slate-600 hover:text-slate-900"
-    (click)="volverAlCarrito()"
-  >
+  <button type="button" class="mb-6 text-sm text-slate-600 hover:text-slate-900" (click)="volverAlCarrito()">
     ← Volver al carrito
   </button>
 
   <h2 class="text-2xl font-bold text-slate-800">Finalizar compra</h2>
   <p class="mt-1 text-sm text-slate-500">
-    Hola {{ usuarioService.usuarioActivo()?.nombres }}, completa tus datos de envio.
+    Hola {{ authService.usuario()?.nombre || authService.usuario()?.email }}, completa tus datos.
   </p>
 
   <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
-    <form
-      class="bg-white rounded-2xl shadow-md p-6"
-      [formGroup]="checkoutForm"
-      (ngSubmit)="confirmarPedido()"
-    >
-      <label class="block text-sm text-slate-600">
-        Nombre completo
-        <input
-          type="text"
-          formControlName="nombreCompleto"
-          class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
-          [class.border-red-400]="nombreCompleto?.invalid && nombreCompleto?.touched"
-          [class.border-slate-200]="!(nombreCompleto?.invalid && nombreCompleto?.touched)"
-        />
-      </label>
-      @if (nombreCompleto?.invalid && nombreCompleto?.touched) {
-        <p class="mt-1 text-xs text-red-600">
-          @if (nombreCompleto?.hasError('required')) {
-            Escribe tu nombre completo.
-          } @else {
-            Debe tener al menos 5 caracteres.
-          }
-        </p>
-      }
+    <form class="bg-white rounded-2xl shadow-md p-6" [formGroup]="checkoutForm" (ngSubmit)="confirmarPedido()">
+      <!-- ================= Sub-grupo: envio ================= -->
+      <div formGroupName="envio">
+        <h3 class="font-semibold text-slate-800 mb-4">Datos de envio</h3>
 
-      <label class="mt-4 block text-sm text-slate-600">
-        Direccion
-        <input
-          type="text"
-          formControlName="direccion"
-          placeholder="Av. Siempre Viva 742"
-          class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
-          [class.border-red-400]="direccion?.invalid && direccion?.touched"
-          [class.border-slate-200]="!(direccion?.invalid && direccion?.touched)"
-        />
-      </label>
-      @if (direccion?.invalid && direccion?.touched) {
-        <p class="mt-1 text-xs text-red-600">
-          @if (direccion?.hasError('required')) {
-            Escribe tu direccion.
-          } @else {
-            La direccion es muy corta.
-          }
-        </p>
-      }
+        <label class="block text-sm text-slate-600">
+          Nombre completo
+          <input
+            type="text"
+            formControlName="nombreCompleto"
+            class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+            [class.border-red-400]="nombreCompleto?.invalid && nombreCompleto?.touched"
+            [class.border-slate-200]="!(nombreCompleto?.invalid && nombreCompleto?.touched)"
+          />
+        </label>
+        @if (nombreCompleto?.invalid && nombreCompleto?.touched) {
+          <p class="mt-1 text-xs text-red-600">Escribe tu nombre completo (5 caracteres o mas).</p>
+        }
 
-      <label class="mt-4 block text-sm text-slate-600">
-        Ciudad
-        <select
-          formControlName="ciudad"
-          class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+        <label class="mt-4 block text-sm text-slate-600">
+          Direccion
+          <input
+            type="text"
+            formControlName="direccion"
+            placeholder="Av. Arequipa 1234"
+            class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+            [class.border-red-400]="direccion?.invalid && direccion?.touched"
+            [class.border-slate-200]="!(direccion?.invalid && direccion?.touched)"
+          />
+        </label>
+        @if (direccion?.invalid && direccion?.touched) {
+          <p class="mt-1 text-xs text-red-600">Escribe una direccion valida.</p>
+        }
+
+        <label class="mt-4 block text-sm text-slate-600">
+          Ciudad
+          <select
+            formControlName="ciudad"
+            class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="Lima">Lima</option>
+            <option value="Arequipa">Arequipa</option>
+            <option value="Trujillo">Trujillo</option>
+            <option value="Cusco">Cusco</option>
+          </select>
+        </label>
+
+        <!-- Campo condicional: se habilita solo si marcan la casilla -->
+        <label class="mt-4 flex items-center gap-2 text-sm text-slate-600">
+          <input type="checkbox" formControlName="usarOtraDireccion" class="rounded border-slate-300" />
+          Enviar a otra direccion
+        </label>
+
+        <label
+          class="mt-3 block text-sm"
+          [class.text-slate-600]="direccionAlternativa?.enabled"
+          [class.text-slate-400]="direccionAlternativa?.disabled"
         >
-          <option value="Lima">Lima</option>
-          <option value="Arequipa">Arequipa</option>
-          <option value="Trujillo">Trujillo</option>
-          <option value="Cusco">Cusco</option>
-        </select>
-      </label>
-
-      <div class="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_7rem] gap-4">
-        <label class="block text-sm text-slate-600">
-          Numero de tarjeta
+          Direccion alternativa
           <input
             type="text"
-            formControlName="numeroTarjeta"
-            inputmode="numeric"
-            maxlength="16"
-            placeholder="16 digitos"
-            class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
-            [class.border-red-400]="numeroTarjeta?.invalid && numeroTarjeta?.touched"
-            [class.border-slate-200]="!(numeroTarjeta?.invalid && numeroTarjeta?.touched)"
+            formControlName="direccionAlternativa"
+            placeholder="Se habilita al marcar la casilla"
+            class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
           />
         </label>
-
-        <label class="block text-sm text-slate-600">
-          CVV
-          <input
-            type="text"
-            formControlName="cvv"
-            inputmode="numeric"
-            maxlength="3"
-            placeholder="123"
-            class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
-            [class.border-red-400]="cvv?.invalid && cvv?.touched"
-            [class.border-slate-200]="!(cvv?.invalid && cvv?.touched)"
-          />
-        </label>
+        @if (direccionAlternativa?.enabled && direccionAlternativa?.invalid && direccionAlternativa?.touched) {
+          <p class="mt-1 text-xs text-red-600">Escribe la direccion alternativa.</p>
+        }
       </div>
 
-      @if (numeroTarjeta?.invalid && numeroTarjeta?.touched) {
-        <p class="mt-1 text-xs text-red-600">La tarjeta debe tener 16 digitos.</p>
-      }
-      @if (cvv?.invalid && cvv?.touched) {
-        <p class="mt-1 text-xs text-red-600">El CVV debe tener 3 digitos.</p>
+      <!-- ================= Sub-grupo: pago ================= -->
+      <div formGroupName="pago" class="mt-8 pt-6 border-t border-slate-200">
+        <h3 class="font-semibold text-slate-800 mb-4">Datos de pago</h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-[1fr_7rem] gap-4">
+          <label class="block text-sm text-slate-600">
+            Numero de tarjeta
+            <input
+              type="text"
+              formControlName="numeroTarjeta"
+              inputmode="numeric"
+              maxlength="16"
+              placeholder="16 digitos"
+              class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+              [class.border-red-400]="numeroTarjeta?.invalid && numeroTarjeta?.touched"
+              [class.border-slate-200]="!(numeroTarjeta?.invalid && numeroTarjeta?.touched)"
+            />
+          </label>
+
+          <label class="block text-sm text-slate-600">
+            CVV
+            <input
+              type="text"
+              formControlName="cvv"
+              inputmode="numeric"
+              maxlength="3"
+              placeholder="123"
+              class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+              [class.border-red-400]="cvv?.invalid && cvv?.touched"
+              [class.border-slate-200]="!(cvv?.invalid && cvv?.touched)"
+            />
+          </label>
+        </div>
+
+        @if (numeroTarjeta?.invalid && numeroTarjeta?.touched) {
+          <p class="mt-1 text-xs text-red-600">La tarjeta debe tener 16 digitos.</p>
+        }
+        @if (cvv?.invalid && cvv?.touched) {
+          <p class="mt-1 text-xs text-red-600">El CVV debe tener 3 digitos.</p>
+        }
+
+        <label class="mt-4 block text-sm text-slate-600">
+          Monto a pagar (debe coincidir con el total)
+          <input
+            type="number"
+            step="0.01"
+            formControlName="montoIngresado"
+            [placeholder]="carritoService.total().toFixed(2)"
+            class="mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+            [class.border-red-400]="pago?.hasError('montoNoCoincide') && montoIngresado?.touched"
+            [class.border-slate-200]="!(pago?.hasError('montoNoCoincide') && montoIngresado?.touched)"
+          />
+        </label>
+        @if (montoIngresado?.invalid && montoIngresado?.touched) {
+          <p class="mt-1 text-xs text-red-600">Escribe el monto.</p>
+        } @else if (pago?.hasError('montoNoCoincide') && montoIngresado?.touched) {
+          <p class="mt-1 text-xs text-red-600">
+            El monto no coincide con el total (S/ {{ carritoService.total().toFixed(2) }}).
+          </p>
+        }
+      </div>
+
+      <!-- Estado PENDING mientras corre la validacion asincrona de stock -->
+      @if (checkoutForm.pending) {
+        <p class="mt-6 flex items-center gap-2 text-sm text-slate-500">
+          <span
+            class="inline-block w-4 h-4 rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin"
+          ></span>
+          Verificando stock...
+        </p>
+      } @else if (checkoutForm.hasError('stockInsuficiente')) {
+        <p class="mt-6 text-sm text-red-600">
+          Ya no hay stock suficiente de: {{ checkoutForm.getError('stockInsuficiente') }}
+        </p>
       }
 
       <button
         type="submit"
-        class="mt-6 w-full py-3 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-700 disabled:bg-slate-400"
-        [disabled]="procesando"
+        class="mt-6 w-full py-3 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+        [disabled]="procesando() || checkoutForm.pending"
       >
-        Confirmar pedido
+        @if (checkoutForm.pending) {
+          Verificando stock...
+        } @else {
+          Confirmar pedido
+        }
       </button>
 
       <p class="mt-3 text-center text-xs text-slate-400">
-        Formulario {{ checkoutForm.valid ? 'valido' : 'incompleto' }}
+        Estado del formulario: {{ checkoutForm.status }}
       </p>
     </form>
 
+    <!-- ================= Resumen del pedido ================= -->
     <aside class="bg-white rounded-2xl shadow-md p-5 h-fit">
       <h3 class="font-semibold text-slate-800">Tu pedido</h3>
 
       <div class="mt-4 space-y-3">
-        @for (item of carritoService.elementos(); track item.id) {
+        @for (item of carritoService.items(); track item.id) {
           <div class="flex items-center gap-3">
-            <img
-              [src]="item.imagen"
-              [alt]="item.nombre"
-              class="w-10 h-10 object-contain bg-slate-50 rounded-lg"
-            />
+            <img [src]="item.imagen" [alt]="item.nombre" class="w-10 h-10 object-contain bg-slate-50 rounded-lg" />
             <div class="flex-1 min-w-0">
               <p class="text-sm text-slate-800 truncate">{{ item.nombre }}</p>
               <p class="text-xs text-slate-500">x{{ item.cantidad }}</p>
             </div>
-            <p class="text-sm font-medium text-slate-800">
-              S/ {{ item.precio * item.cantidad }}
-            </p>
+            <p class="text-sm font-medium text-slate-800">S/ {{ item.precio * item.cantidad }}</p>
           </div>
         } @empty {
           <p class="text-sm text-slate-500">No hay productos en el carrito.</p>
         }
       </div>
 
-      <div class="mt-5 pt-4 border-t border-slate-200 flex justify-between">
-        <span class="text-slate-600">Total</span>
-        <span class="font-bold text-emerald-600 text-lg">
-          S/ {{ carritoService.precioTotal() }}.00
-        </span>
+      <div class="mt-5 pt-4 border-t border-slate-200 space-y-2 text-sm">
+        <div class="flex justify-between text-slate-600">
+          <span>Subtotal</span>
+          <span>S/ {{ carritoService.subtotal().toFixed(2) }}</span>
+        </div>
+
+        @if (carritoService.descuento() > 0) {
+          <div class="flex justify-between text-emerald-600">
+            <span>Descuento (10%)</span>
+            <span>- S/ {{ carritoService.descuento().toFixed(2) }}</span>
+          </div>
+        }
+
+        <div class="flex justify-between pt-2 border-t border-slate-100">
+          <span class="text-slate-600">Total</span>
+          <span class="font-bold text-emerald-600 text-lg">S/ {{ carritoService.total().toFixed(2) }}</span>
+        </div>
       </div>
     </aside>
   </div>

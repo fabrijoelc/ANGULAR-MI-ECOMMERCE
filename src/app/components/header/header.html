@@ -40,9 +40,9 @@
         Carrito ({{ carritoService.cantidadDeItems() }})
       </a>
 
-      @if (usuarioService.usuarioActivo()) {
+      @if (authService.usuario()) {
         <span class="px-3 py-2 text-sm text-emerald-400">
-          Hola, {{ usuarioService.usuarioActivo()!.nombres }}
+          Hola, {{ authService.usuario()!.nombre || authService.usuario()!.email }}
         </span>
 
         <button

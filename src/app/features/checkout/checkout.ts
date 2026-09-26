@@ -1,9 +1,33 @@
-import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, signal } from '@angular/core';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { CarritoService } from '../../services/carrito-service';
-import { UsuarioService } from '../../services/usuario-service';
+import { AuthService } from '../../services/auth-service';
+import { ProductoService } from '../../services/producto-service';
 import { NotificacionService } from '../../services/notificacion-service';
+import { stockDisponibleValidator } from '../../core/validators/stock.validator';
+
+// Validador de grupo sobre "pago": el monto tecleado tiene que coincidir
+// con el total real del carrito.
+function montoCoincideConTotal(totalEsperado: () => number): ValidatorFn {
+  return (grupo: AbstractControl): ValidationErrors | null => {
+    const monto = Number(grupo.get('montoIngresado')?.value);
+    const total = Number(totalEsperado().toFixed(2));
+
+    if (!monto) {
+      return null;
+    }
+
+    return Math.abs(monto - total) < 0.01 ? null : { montoNoCoincide: true };
+  };
+}
 
 @Component({
   selector: 'app-checkout',
@@ -15,59 +39,116 @@ export class Checkout {
   private router = inject(Router);
 
   carritoService = inject(CarritoService);
-  usuarioService = inject(UsuarioService);
+  authService = inject(AuthService);
+  productoService = inject(ProductoService);
   notificacionService = inject(NotificacionService);
 
-  procesando = false;
+  procesando = signal(false);
 
-  checkoutForm = this.fb.nonNullable.group({
-    nombreCompleto: ['', [Validators.required, Validators.minLength(5)]],
-    direccion: ['', [Validators.required, Validators.minLength(8)]],
-    ciudad: ['Lima', Validators.required],
-    numeroTarjeta: ['', [Validators.required, Validators.pattern(/^\d{16}$/)]],
-    cvv: ['', [Validators.required, Validators.pattern(/^\d{3}$/)]],
-  });
+  // Formulario con sub-grupos: envio y pago.
+  checkoutForm = this.fb.group(
+    {
+      envio: this.fb.group({
+        nombreCompleto: ['', [Validators.required, Validators.minLength(5)]],
+        direccion: ['', [Validators.required, Validators.minLength(8)]],
+        ciudad: ['Lima', Validators.required],
+        usarOtraDireccion: [false],
+        direccionAlternativa: [{ value: '', disabled: true }, Validators.required],
+      }),
+      pago: this.fb.group(
+        {
+          numeroTarjeta: ['', [Validators.required, Validators.pattern(/^\d{16}$/)]],
+          cvv: ['', [Validators.required, Validators.pattern(/^\d{3}$/)]],
+          montoIngresado: ['', Validators.required],
+        },
+        { validators: montoCoincideConTotal(() => this.carritoService.total()) },
+      ),
+    },
+    {
+      // Antes de dejar confirmar, el servidor dice si aun hay stock.
+      asyncValidators: [stockDisponibleValidator(this.productoService, this.carritoService)],
+    },
+  );
 
-  // Getters para no repetir checkoutForm.get(...) en toda la plantilla.
+  get envio() {
+    return this.checkoutForm.get('envio');
+  }
+
+  get pago() {
+    return this.checkoutForm.get('pago');
+  }
+
   get nombreCompleto() {
-    return this.checkoutForm.get('nombreCompleto');
+    return this.checkoutForm.get('envio.nombreCompleto');
   }
 
   get direccion() {
-    return this.checkoutForm.get('direccion');
+    return this.checkoutForm.get('envio.direccion');
   }
 
-  get ciudad() {
-    return this.checkoutForm.get('ciudad');
+  get direccionAlternativa() {
+    return this.checkoutForm.get('envio.direccionAlternativa');
   }
 
   get numeroTarjeta() {
-    return this.checkoutForm.get('numeroTarjeta');
+    return this.checkoutForm.get('pago.numeroTarjeta');
   }
 
   get cvv() {
-    return this.checkoutForm.get('cvv');
+    return this.checkoutForm.get('pago.cvv');
+  }
+
+  get montoIngresado() {
+    return this.checkoutForm.get('pago.montoIngresado');
+  }
+
+  constructor() {
+    // El campo de la otra direccion solo se habilita si marcan la casilla.
+    this.checkoutForm.get('envio.usarOtraDireccion')?.valueChanges.subscribe((usar) => {
+      const campo = this.direccionAlternativa;
+
+      if (usar) {
+        campo?.enable();
+      } else {
+        campo?.reset('');
+        campo?.disable();
+      }
+    });
   }
 
   confirmarPedido() {
-    if (this.checkoutForm.invalid) {
-      // Marca todos los campos para que se vean los errores de una vez.
-      this.checkoutForm.markAllAsTouched();
-      this.notificacionService.show('Revisa los datos del formulario', 'error');
+    if (this.checkoutForm.pending) {
+      this.notificacionService.show('Espera, estamos verificando el stock', 'info');
       return;
     }
 
-    if (this.carritoService.elementos().length === 0) {
+    if (this.checkoutForm.invalid) {
+      this.checkoutForm.markAllAsTouched();
+
+      if (this.checkoutForm.hasError('stockInsuficiente')) {
+        this.notificacionService.show(
+          'Ya no hay stock de: ' + this.checkoutForm.getError('stockInsuficiente'),
+          'error',
+        );
+      } else {
+        this.notificacionService.show('Revisa los datos del formulario', 'error');
+      }
+
+      return;
+    }
+
+    if (this.carritoService.items().length === 0) {
       this.notificacionService.show('Tu carrito esta vacio', 'error');
       return;
     }
 
-    this.procesando = true;
+    this.procesando.set(true);
 
     this.notificacionService.show('Pedido confirmado, gracias por tu compra', 'exito');
     this.carritoService.vaciar();
-    this.checkoutForm.reset({ ciudad: 'Lima' });
-    this.procesando = false;
+    this.checkoutForm.reset({ envio: { ciudad: 'Lima', usarOtraDireccion: false } });
+    this.direccionAlternativa?.disable();
+    this.procesando.set(false);
 
     this.router.navigate(['/']);
   }

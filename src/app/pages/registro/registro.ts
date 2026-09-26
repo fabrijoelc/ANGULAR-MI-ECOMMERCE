@@ -8,7 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { UsuarioService } from '../../services/usuario-service';
+import { AuthService } from '../../services/auth-service';
 import { NotificacionService } from '../../services/notificacion-service';
 
 // Validador propio a nivel de grupo: compara los dos campos entre si.
@@ -30,7 +30,7 @@ export class Registro {
   private fb = inject(FormBuilder);
   private router = inject(Router);
 
-  usuarioService = inject(UsuarioService);
+  authService = inject(AuthService);
   notificacionService = inject(NotificacionService);
 
   guardando = signal(false);
@@ -61,7 +61,7 @@ export class Registro {
     return this.registroForm.get('repetirClave');
   }
 
-  async crearCuenta() {
+  crearCuenta() {
     if (this.registroForm.invalid) {
       this.registroForm.markAllAsTouched();
       return;
@@ -69,24 +69,31 @@ export class Registro {
 
     this.guardando.set(true);
 
-    try {
-      const creada = await this.usuarioService.registrar(
-        this.registroForm.controls.nombre.value,
+    this.authService
+      .registrarse(
         this.registroForm.controls.email.value,
         this.registroForm.controls.clave.value,
-      );
-
-      if (creada) {
-        this.notificacionService.show('Cuenta creada, ya puedes iniciar sesion', 'exito');
-        this.router.navigate(['/login']);
-      } else {
-        this.notificacionService.show('Ese correo ya esta registrado', 'error');
-      }
-    } catch {
-      this.notificacionService.show('No se pudo conectar con el servidor', 'error');
-    }
-
-    this.guardando.set(false);
+        this.registroForm.controls.nombre.value,
+      )
+      .subscribe({
+        next: (respuesta) => {
+          if (respuesta?.access_token) {
+            // El proyecto no pide confirmar correo: ya quedaste dentro.
+            this.notificacionService.show('Cuenta creada, ya iniciaste sesion', 'exito');
+            this.router.navigate(['/catalogo']);
+          } else {
+            this.notificacionService.show('Cuenta creada, revisa tu correo para confirmarla', 'info');
+            this.router.navigate(['/login']);
+          }
+        },
+        error: () => {
+          this.notificacionService.show('No se pudo crear la cuenta', 'error');
+          this.guardando.set(false);
+        },
+        complete: () => {
+          this.guardando.set(false);
+        },
+      });
   }
 
   limpiarFormulario() {

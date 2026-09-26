@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CarritoService } from '../../services/carrito-service';
-import { UsuarioService } from '../../services/usuario-service';
+import { AuthService } from '../../services/auth-service';
 
 @Component({
   selector: 'app-header',
@@ -14,10 +14,10 @@ export class Header {
   // El header no es padre del catalogo, pero ve el mismo carrito
   // porque los dos inyectan el mismo servicio.
   carritoService = inject(CarritoService);
-  usuarioService = inject(UsuarioService);
+  authService = inject(AuthService);
 
   cerrarSesion() {
-    this.usuarioService.cerrarSesion();
+    this.authService.logout().subscribe();
     this.router.navigate(['/catalogo']);
   }
 }

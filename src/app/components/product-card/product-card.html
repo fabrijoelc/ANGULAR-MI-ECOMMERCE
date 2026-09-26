@@ -29,7 +29,7 @@
     <h3 class="text-base font-semibold text-slate-800 mt-1">{{ nombre() }}</h3>
 
     <div class="flex items-center justify-between gap-2 mt-3 mb-4">
-      <p class="text-emerald-600 font-bold text-xl">S/ {{ precio() }}.00</p>
+      <p class="text-emerald-600 font-bold text-xl">S/ {{ precio().toFixed(2) }}</p>
 
       <p
         class="text-xs font-medium rounded-full px-3 py-1"

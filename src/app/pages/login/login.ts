@@ -1,7 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
-import { UsuarioService } from '../../services/usuario-service';
+import { AuthService } from '../../services/auth-service';
 import { NotificacionService } from '../../services/notificacion-service';
 
 @Component({
@@ -13,7 +14,7 @@ export class Login {
   private fb = inject(FormBuilder);
   private router = inject(Router);
 
-  usuarioService = inject(UsuarioService);
+  authService = inject(AuthService);
   notificacionService = inject(NotificacionService);
 
   verClave = signal(false);
@@ -37,7 +38,7 @@ export class Login {
     this.verClave.update((valorActual) => !valorActual);
   }
 
-  async iniciarSesion() {
+  iniciarSesion() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -45,27 +46,32 @@ export class Login {
 
     this.verificando.set(true);
 
-    try {
-      const correcto = await this.usuarioService.loguear(
-        this.loginForm.controls.email.value,
-        this.loginForm.controls.clave.value,
-      );
+    this.authService
+      .login(this.loginForm.controls.email.value, this.loginForm.controls.clave.value)
+      .subscribe({
+        next: () => {
+          this.notificacionService.show('Bienvenido de vuelta', 'exito');
+          this.router.navigate(['/catalogo']);
+        },
+        error: (fallo: HttpErrorResponse) => {
+          const codigo = fallo.error?.error_code ?? '';
 
-      if (correcto) {
-        this.notificacionService.show('Bienvenido de vuelta', 'exito');
-        this.router.navigate(['/catalogo']);
-      } else {
-        this.notificacionService.show('Correo o contrasena incorrectos', 'error');
-      }
-    } catch {
-      this.notificacionService.show('No se pudo conectar con el servidor', 'error');
-    }
+          if (codigo === 'email_not_confirmed') {
+            this.notificacionService.show('Tienes que confirmar tu correo primero', 'error');
+          } else {
+            this.notificacionService.show('Correo o contrasena incorrectos', 'error');
+          }
 
-    this.verificando.set(false);
+          this.verificando.set(false);
+        },
+        complete: () => {
+          this.verificando.set(false);
+        },
+      });
   }
 
   cerrarSesion() {
-    this.usuarioService.cerrarSesion();
+    this.authService.logout().subscribe();
     this.loginForm.reset();
   }
 }

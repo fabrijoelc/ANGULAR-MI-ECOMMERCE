@@ -1,72 +1,119 @@
 import { computed, effect, Injectable, signal } from '@angular/core';
 import { IProductoCarrito } from '../interfaces/producto.interface';
 
+const CLAVE_CARRITO = 'nba-carrito';
+
+// Estado de interfaz, separado de los datos del carrito.
+interface IEstadoUI {
+  cargando: boolean;
+  error: string | null;
+  ultimoAgregado: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CarritoService {
-  private elementosSignal = signal<IProductoCarrito[]>([]);
-  elementos = this.elementosSignal.asReadonly();
+  // Los datos van por un lado...
+  private itemsSignal = signal<IProductoCarrito[]>([]);
+  items = this.itemsSignal.asReadonly();
 
-  cantidadDeItems = computed(() => {
-    let cantidadTotal = 0;
-    for (let index = 0; index < this.elementosSignal().length; index++) {
-      cantidadTotal += this.elementosSignal()[index].cantidad;
-    }
-    return cantidadTotal;
+  // ...y el estado de la interfaz por otro, sin mezclarlos en un objeto.
+  estadoUI = signal<IEstadoUI>({
+    cargando: false,
+    error: null,
+    ultimoAgregado: '',
   });
 
-  precioTotal = computed(() => {
-    let precioTotal = 0;
-    for (let index = 0; index < this.elementosSignal().length; index++) {
-      precioTotal += this.elementosSignal()[index].cantidad * this.elementosSignal()[index].precio;
-    }
-    return precioTotal;
+  // Se mantiene el nombre viejo para no romper el resto de la app.
+  elementos = this.itemsSignal.asReadonly();
+
+  // --- Cadena de computed: cada uno depende del anterior ---
+  subtotal = computed(() =>
+    this.itemsSignal().reduce((acc, item) => acc + item.precio * item.cantidad, 0),
+  );
+
+  // Mas de S/ 200 de compra: 10% de descuento.
+  descuento = computed(() => {
+    const base = this.subtotal();
+    return base > 200 ? base * 0.1 : 0;
   });
+
+  total = computed(() => this.subtotal() - this.descuento());
+
+  cantidadDeItems = computed(() =>
+    this.itemsSignal().reduce((acc, item) => acc + item.cantidad, 0),
+  );
+
+  // Alias del total, que es lo que ya usaban el carrito y el header.
+  precioTotal = this.total;
 
   constructor() {
-    const guardado = localStorage.getItem('nba-carrito');
+    // El signal se llena leyendo LocalStorage antes que nada.
+    const guardado = localStorage.getItem(CLAVE_CARRITO);
+
     if (guardado) {
-      this.elementosSignal.set(JSON.parse(guardado));
+      try {
+        this.itemsSignal.set(JSON.parse(guardado));
+      } catch {
+        localStorage.removeItem(CLAVE_CARRITO);
+      }
     }
 
+    // Un solo effect() guarda en cada cambio: ningun metodo del CRUD
+    // tiene que acordarse de llamar setItem().
     effect(() => {
-      localStorage.setItem('nba-carrito', JSON.stringify(this.elementosSignal()));
+      localStorage.setItem(CLAVE_CARRITO, JSON.stringify(this.itemsSignal()));
     });
 
     effect(() => {
       const items = this.cantidadDeItems();
-
-      if (items === 0) {
-        document.title = 'Tienda de Jerseys NBA';
-      } else {
-        document.title = '(' + items + ') Tienda de Jerseys NBA';
-      }
+      document.title = items === 0 ? 'Tienda de Jerseys NBA' : '(' + items + ') Tienda de Jerseys NBA';
     });
   }
 
-  agregar(data: IProductoCarrito) {
-    this.elementosSignal.update((listaActual) => {
-      const existente = listaActual.find((item) => item.id === data.id);
+  // --- CRUD inmutable: siempre se reemplaza el arreglo, nunca se muta ---
+
+  agregarAlCarrito(data: IProductoCarrito) {
+    this.itemsSignal.update((lista) => {
+      const existente = lista.find((item) => item.id === data.id);
 
       if (existente) {
-        return listaActual.map((item) => {
-          if (item.id === data.id) {
-            return { ...item, cantidad: item.cantidad + data.cantidad };
-          }
-          return item;
-        });
+        return lista.map((item) =>
+          item.id === data.id ? { ...item, cantidad: item.cantidad + data.cantidad } : item,
+        );
       }
 
-      return [...listaActual, data];
+      return [...lista, { ...data }];
     });
+
+    this.estadoUI.update((estado) => ({ ...estado, ultimoAgregado: data.nombre, error: null }));
   }
 
-  quitar(id: string) {
-    this.elementosSignal.update((listaActual) => {
-      return listaActual.filter((item) => item.id !== id);
-    });
+  actualizarCantidad(id: string, cantidad: number) {
+    if (cantidad < 1) {
+      this.eliminarDelCarrito(id);
+      return;
+    }
+
+    this.itemsSignal.update((lista) =>
+      lista.map((item) => (item.id === id ? { ...item, cantidad } : item)),
+    );
+  }
+
+  eliminarDelCarrito(id: string) {
+    this.itemsSignal.update((lista) => lista.filter((item) => item.id !== id));
   }
 
   vaciar() {
-    this.elementosSignal.set([]);
+    this.itemsSignal.set([]);
+    this.estadoUI.update((estado) => ({ ...estado, ultimoAgregado: '', error: null }));
+  }
+
+  // Nombres viejos, para no tocar los componentes que ya funcionaban.
+  agregar(data: IProductoCarrito) {
+    this.agregarAlCarrito(data);
+  }
+
+  quitar(id: string) {
+    this.eliminarDelCarrito(id);
   }
 }
